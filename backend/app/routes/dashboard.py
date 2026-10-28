@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from .. import models
 from ..auth import current_membership
+from ..audit import AuditLogger
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -28,10 +29,22 @@ def level_for(avg):
 @router.get("")
 def org_dashboard(org_id: int, m: models.Membership = Depends(current_membership), db: Session = Depends(get_db)):
     if m.role != "admin":
+        AuditLogger.log_permission_denied(
+            user_id=str(m.user_id),
+            resource=f"org:{org_id}:dashboard",
+            action="view",
+            reason="insufficient_role"
+        )
         raise HTTPException(403, "Admins only")
 
     org = db.get(models.Organization, org_id)
     if not org:
+        AuditLogger.log_permission_denied(
+            user_id=str(m.user_id),
+            resource=f"org:{org_id}",
+            action="view",
+            reason="org_not_found"
+        )
         raise HTTPException(404, "Organization not found")
 
     members = db.query(models.Membership).filter_by(org_id=org_id).all()
@@ -82,6 +95,14 @@ def org_dashboard(org_id: int, m: models.Membership = Depends(current_membership
         else:
             # Hide teams with fewer than MIN_GROUP_SIZE responses
             hidden_team_count += 1
+
+    AuditLogger.log_data_access(
+        event_type="dashboard_view",
+        user_id=str(m.user_id),
+        resource=f"org:{org_id}",
+        action="view",
+        status="success"
+    )
 
     return {
         "organization": org.name,
