@@ -20,6 +20,21 @@ class SelectOrgIn(BaseModel):
     org_id: int
 
 
+@router.get("/me")
+def get_current_user(user: models.User = Depends(current_user)):
+    """Get current authenticated user info for session restoration."""
+    orgs = [
+        {"org_id": m.org_id, "org_name": m.org.name, "role": m.role}
+        for m in user.memberships
+    ]
+    return {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "organizations": orgs
+    }
+
+
 @router.post("/login")
 def login(body: LoginIn, db: Session = Depends(get_db)):
     user = db.query(models.User).filter_by(email=body.email).first()
