@@ -1,9 +1,17 @@
+"""Question selection and seniority-based filtering.
+
+Implements role-based and seniority-level question adaptation.
+Questions are filtered by:
+1. Job role (e.g., 'engineering', 'support')
+2. Seniority level using numeric comparison (prevents string ordering bugs)
+"""
 import json
 import os
 
 _PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "questions.json")
 
 # Seniority levels in order from lowest to highest
+# Fixed: Previously used string comparison which failed for 'lead' < 'senior' (true alphabetically, false logically)
 SENIORITY_HIERARCHY = ["junior", "mid", "senior", "lead"]
 
 
