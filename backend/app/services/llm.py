@@ -1,16 +1,25 @@
 """Thin wrapper around the LLM used to score open-ended answers.
 
-AI_MODE=mock  -> returns canned responses from data/mock_ai_responses.json
-AI_MODE=live  -> calls an OpenAI-compatible chat completions endpoint
+Implements robust error handling with:
+- Exponential backoff retry logic (500ms → 10s)
+- Fallback to mock mode on all LLM failures
+- JSON parsing with detailed error logging
+- Safe defaults for invalid responses
+
+AI_MODE=mock  -> returns canned responses from data/mock_ai_responses.json (deterministic)
+AI_MODE=live  -> calls an OpenAI-compatible chat completions endpoint with retries
 """
 import hashlib
 import json
 import os
+import time
+import logging
 
 import httpx
 
 from ..config import AI_MODE, LLM_API_URL, LLM_API_KEY, LLM_MODEL
 
+logger = logging.getLogger(__name__)
 _MOCK_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "mock_ai_responses.json")
 
 PROMPT = """You are scoring how well an employee uses AI at work.
