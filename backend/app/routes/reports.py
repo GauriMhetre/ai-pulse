@@ -5,6 +5,7 @@ from ..db import get_db
 from .. import models
 from ..auth import current_membership
 from ..utils import maturity_level
+from ..audit import AuditLogger
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -22,6 +23,15 @@ def my_report(m: models.Membership = Depends(current_membership), db: Session = 
     scores = [r.score for r in rows if r.score is not None]
     avg = sum(scores) / len(scores) if scores else None
     flags = sorted({f for r in rows for f in (r.flags or [])})
+    
+    AuditLogger.log_data_access(
+        event_type="report_view",
+        user_id=str(m.user_id),
+        resource=f"user:{m.user_id}:report",
+        action="view",
+        status="success"
+    )
+    
     return {
         "name": m.user.name,
         "organization": m.org.name,
