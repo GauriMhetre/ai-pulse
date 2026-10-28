@@ -1,279 +1,214 @@
-# AI Pulse
+# AI Pulse - Assessment Submission
 
 AI Pulse helps a company understand how well its people use AI at work, team by team.
 
-- **Employees** sign in, pick their organization, and take a short diagnostic. Questions adapt to their job role and seniority. One open-ended answer is scored by an LLM.
-- **Each employee** gets a personal report: maturity level, risks, and next steps for their role.
-- **Company admins** see a dashboard of AI maturity by department and the top risks across the company.
-- Some users (consultants, group-company HR) belong to **more than one organization** and choose one after login.
+## What Was Found, Fixed, and Delivered
 
-## Features
+### Top 5 Issues Fixed
 
-✅ **Session Persistence** - Users don't need to login every time  
-✅ **Security Hardening** - Audit logging, CSRF protection, security headers  
-✅ **GDPR Compliance** - Right-to-be-forgotten with DELETE /user/data endpoint  
-✅ **Privacy Controls** - Teams with <5 responses hidden to protect anonymity  
-✅ **Loading States** - Clear UX feedback during async operations  
-✅ **Mock AI Mode** - Demo with canned responses, no API key needed  
+1. **Privacy Violation: Small Groups Identifiable on Dashboard**
+   - **Issue:** Departments with <5 completed responses were showing individual scores, breaking anonymity
+   - **Fix:** Implemented privacy threshold (MIN_GROUP_SIZE=5) to hide teams with insufficient responses
+   - **Impact:** Client requirement met - GDPR anonymity compliance
+   - **Files:** `backend/app/routes/dashboard.py`, `backend/app/models.py`
 
-## Stack
+2. **No User Data Deletion Capability**
+   - **Issue:** No way for employees to exercise right-to-be-forgotten; data persists indefinitely
+   - **Fix:** Implemented DELETE /user/data endpoint for complete data removal (responses, memberships, account)
+   - **Impact:** GDPR compliance + client requirement met
+   - **Files:** `backend/app/routes/delete.py`, `backend/app/audit.py`
 
-- **Backend:** Python 3.12, FastAPI, SQLAlchemy (SQLite by default)
-- **Frontend:** React 18, Vite, modern JavaScript
-- **AI:** OpenAI-compatible chat completions or mock mode
-- **Deployment:** Render (backend + frontend), Docker support
+3. **Session Not Persisting Across Page Reloads**
+   - **Issue:** Users logged out on every page refresh, poor UX
+   - **Fix:** Added session restoration with GET /auth/me endpoint and localStorage token validation
+   - **Impact:** Seamless user experience, users stay logged in
+   - **Files:** `frontend/src/App.jsx`, `backend/app/routes/auth_routes.py`
 
-## Run Locally
+4. **Missing Security Hardening for Enterprise**
+   - **Issue:** No audit trails, no CSRF protection, no security headers
+   - **Fix:** Implemented audit logging, CSRF tokens with secure cookies, security headers (CSP, HSTS, X-Frame-Options)
+   - **Impact:** Enterprise-grade security, compliance-ready
+   - **Files:** `backend/app/audit.py`, `backend/app/csrf.py`, `backend/app/config.py`
 
-### Backend
+5. **Frontend Build Failing in Production**
+   - **Issue:** Missing API_URL export caused Vite build failure: "API_URL is not exported by src/api.js"
+   - **Fix:** Exported API_URL constant and fixed build configuration
+   - **Impact:** Production deployment now possible
+   - **Files:** `frontend/src/api.js`, `backend/Dockerfile`
 
-```bash
-cd backend
-pip install -r requirements.txt
-python -m app.seed          # creates demo data, password: pulse123
-uvicorn app.main:app --reload
-```
+### Other Issues Fixed
 
-The backend runs on `http://localhost:8000`
+- Dockerfile module import error (uvicorn couldn't find main module)
+- API CORS configuration for frontend/backend communication
+- Render deployment path configuration (publish directory mismatch)
+- Loading states missing on form submissions
+- .gitignore incomplete (environment files, build artifacts exposed)
 
-### Frontend
+## How Client Requirements Were Handled
 
-```bash
-cd frontend
-npm install
-npm run dev                 # http://localhost:5173
-```
+### Client Request 1: Privacy Controls
+**Requirement:** "No small groups on the dashboard. If a department has fewer than 5 people who completed the diagnostic, leadership must not see that department's scores."
 
-The frontend will automatically proxy API calls to localhost:8000
+**Solution Implemented:**
+- Added MIN_GROUP_SIZE=5 threshold in dashboard logic
+- Teams with <5 responses grouped as "hidden_team_count" in response
+- Responses still calculated for the hidden teams (admin doesn't see them)
+- Dashboard shows: response_rates (visible), hidden_team_count (opaque count)
+- Meets anonymity requirement: individual identification prevented
 
-### Tests
+**Status:** ✅ Complete
 
+### Client Request 2: Right to Delete
+**Requirement:** "Any employee must be able to delete all their answers and their report themselves, and it must disappear from every dashboard immediately."
+
+**Solution Implemented:**
+- DELETE /user/data endpoint (secured with JWT auth)
+- Cascading delete: responses → memberships → user account
+- Immediate effect: dashboard recalculates without that user's data
+- Audit logging for all deletions (compliance trail)
+
+**Status:** ✅ Complete
+
+### Questions for Client (if continuing)
+- Should deleted user data retention policy be retained for compliance? (e.g., 90-day recovery window)
+- Do you want audit logs retained separately from user deletion?
+- Should admins see notifications of user deletions?
+
+## Custom Feature: Session Restore with Improved UX
+
+**Problem:** Users must login every time they visit, even if their session is valid. This breaks the app's usability.
+
+**Why Picked:** 
+- Small, sharp feature (not big generic optimization)
+- Directly improves employee experience
+- Builds on existing auth system
+- Enables production deployment
+
+**What It Does:**
+1. On app load, check localStorage for existing token
+2. Call GET /auth/me to validate token with backend
+3. If valid, skip login screen and restore session
+4. If invalid or expired, show login form
+5. Show "Restoring session..." while validating
+
+**Implementation:**
+- Backend: GET /auth/me endpoint returns current user + organizations
+- Frontend: useEffect hook in App.jsx checks token on mount
+- Loading state prevents UI flashing
+- Token automatically sent in Authorization header
+
+**Files:**
+- `frontend/src/App.jsx` (session restoration logic)
+- `backend/app/routes/auth_routes.py` (GET /auth/me endpoint)
+- `frontend/src/api.js` (API_URL export for production)
+
+**Why It Matters:**
+- Employees take assessments once and can view reports anytime
+- Admins can check dashboards without repeated login
+- Reduces friction, increases feature adoption
+
+## How AI Tools Were Used
+
+### What Worked Well
+1. **Code generation:** Quickly scaffolded audit logging, CSRF protection, security headers
+2. **Bug diagnosis:** Identified module import errors and build configuration issues
+3. **Test writing:** Generated comprehensive test cases for new endpoints
+4. **Documentation:** Created deployment guides and API documentation
+
+### Where AI Got It Wrong
+1. **Render deployment:** Generated incorrect Dockerfile paths initially (tried `backend/requirements.txt` instead of relative path)
+2. **CORS configuration:** First suggested `allow_origins=["*"]` without accounting for security headers
+3. **Build commands:** Suggested separate build/publish directories before understanding monorepo structure
+4. **Environment variables:** Didn't initially recognize FRONTEND_URL needed for backend CORS config
+
+**How Fixed:** Read actual error logs, tested locally first, iterated with corrections
+
+## Testing
+
+### Tests Implemented
 ```bash
 cd backend
 python -m pytest
 ```
 
+Test coverage includes:
+- Authentication (login, token generation, current user)
+- Dashboard (privacy thresholds, response rates)
+- User data deletion (cascading deletes, audit logs)
+- CSRF protection (token validation)
+
+### Manual Testing
+- Session restoration: reload page, verify no re-login needed
+- Privacy controls: create <5 responses, verify team hidden
+- Data deletion: delete user, verify dashboard updates immediately
+- CORS: frontend calls backend, verify responses received
+
+## Stack & Deployment
+
+- **Backend:** Python 3.12, FastAPI, SQLAlchemy (SQLite locally, PostgreSQL ready)
+- **Frontend:** React 18, Vite, modern JavaScript
+- **Deployment:** Render (Docker support) or local
+
+### Local Development
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+python -m app.seed
+uvicorn app.main:app --reload
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+### Production Deployment
+Set environment variables:
+- `SECRET_KEY` (backend)
+- `FRONTEND_URL` (backend, for CORS)
+- `VITE_API_URL` (frontend, API endpoint)
+- `AI_MODE=mock` (or live with LLM credentials)
+
 ## Demo Accounts
 
-Password for all accounts: `pulse123`
+All passwords: `pulse123`
 
-| Email | Organization(s) | Role |
-|---|---|---|
-| asha@northwind.test | Northwind Logistics | Admin |
-| meera@bluepeak.test | Bluepeak Retail | Admin |
-| ravi@consult.test | Both | Employee at Northwind, admin at Bluepeak |
-| priya@northwind.test | Northwind Logistics | Employee (Support) |
-| dev@northwind.test | Northwind Logistics | Employee (Engineering, lead) |
+- `asha@northwind.test` - Admin
+- `priya@northwind.test` - Employee (Support)
+- `dev@northwind.test` - Employee (Engineering)
 
-## Deployment
+## What Was Deliberately Left
 
-### Option 1: Render (Recommended)
+1. **Persistent database for production** - Left as SQLite to keep setup simple; production should use PostgreSQL (configuration ready)
+2. **Live LLM integration** - Kept mock mode by default; live mode available with OpenAI API key
+3. **Advanced dashboarding** - Current dashboard is functional; production might need real-time charts, exports
+4. **Multi-language support** - Focused on core functionality first
+5. **Mobile responsive design** - Works on mobile but not optimized; would require CSS refactor
 
-#### Backend Deployment
-
-1. Create a new Web Service on [Render](https://dashboard.render.com)
-2. Connect your GitHub repository
-3. Configure:
-   - **Build Command:** (auto-detected from Dockerfile)
-   - **Start Command:** (auto-detected from Dockerfile)
-4. Set environment variables:
-   ```
-   SECRET_KEY=your-random-secret-key-here
-   AI_MODE=mock
-   ```
-5. Deploy - you'll get a URL like `https://ai-pulse-backend-xxxxx.render.com`
-
-#### Frontend Deployment
-
-1. Create a new Static Site on Render
-2. Connect your GitHub repository  
-3. Configure:
-   - **Root Directory:** `frontend`
-   - **Build Command:** `npm install; npm run build`
-   - **Publish Directory:** `dist`
-4. Set environment variable:
-   ```
-   VITE_API_URL=https://ai-pulse-backend-xxxxx.render.com
-   ```
-5. Deploy - automatic updates on every push to main
-
-### Option 2: Docker
-
-Build and run locally:
-
-```bash
-docker build -t ai-pulse-backend ./backend
-docker run -p 8000:8000 \
-  -e SECRET_KEY=your-secret \
-  -e AI_MODE=mock \
-  ai-pulse-backend
-```
-
-## Configuration
-
-### Environment Variables
-
-**Backend (.env or Render settings):**
-- `SECRET_KEY` - Random string for JWT token signing (required)
-- `DATABASE_URL` - PostgreSQL connection string (optional, defaults to SQLite)
-- `AI_MODE` - `mock` (default) or `live`
-- `LLM_API_URL` - OpenAI API endpoint (required if `AI_MODE=live`)
-- `LLM_API_KEY` - OpenAI API key (required if `AI_MODE=live`)
-- `LLM_MODEL` - Model name like `gpt-4` (required if `AI_MODE=live`)
-- `TOKEN_HOURS` - JWT token expiration in hours (default: 12)
-- `ENABLE_AUDIT_LOGGING` - Enable audit logs (`true`/`false`, default: `true`)
-
-**Frontend (.env.local or Render settings):**
-- `VITE_API_URL` - Backend API URL (required for production)
-
-### AI Mode
-
-#### Mock Mode (Default)
-Returns canned responses from `backend/data/mock_ai_responses.json`. Perfect for demos and testing.
-
-```bash
-AI_MODE=mock
-```
-
-#### Live Mode
-Calls OpenAI-compatible API for real AI scoring.
-
-```bash
-AI_MODE=live
-LLM_API_URL=https://api.openai.com/v1
-LLM_API_KEY=sk-...
-LLM_MODEL=gpt-4-turbo
-```
-
-## Security Features
-
-✅ **Audit Logging** - All authentication and data access events logged  
-✅ **CSRF Protection** - Token-based CSRF prevention on state-changing operations  
-✅ **Security Headers** - X-Frame-Options, X-Content-Type-Options, CSP, HSTS  
-✅ **JWT Authentication** - Secure token-based session management  
-✅ **Input Validation** - Pydantic models for all API inputs  
-✅ **GDPR Compliance** - DELETE /user/data endpoint for data deletion  
-✅ **Privacy Controls** - Groups with <5 responses anonymized on dashboard  
-
-## API Endpoints
-
-### Authentication
-- `POST /auth/login` - Login with email/password
-- `GET /auth/me` - Get current user info (session restore)
-- `POST /auth/select-org` - Switch to different organization
-
-### Diagnostic
-- `GET /diagnostic/questions` - Get assessment questions
-- `POST /diagnostic/submit` - Submit answers
-
-### Reports
-- `GET /reports/me` - Get personal maturity report
-
-### Dashboard
-- `GET /dashboard?org_id=1` - Get organization dashboard (admin only)
-
-### Data Management
-- `DELETE /user/data` - Delete all user data (GDPR)
-
-## Project Structure
+## Repository Structure
 
 ```
 ai-pulse/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # FastAPI app setup
-│   │   ├── models.py         # SQLAlchemy ORM models
-│   │   ├── auth.py           # JWT authentication
 │   │   ├── audit.py          # Audit logging
 │   │   ├── csrf.py           # CSRF protection
-│   │   ├── config.py         # Configuration
 │   │   ├── routes/           # API endpoints
-│   │   │   ├── auth_routes.py
-│   │   │   ├── dashboard.py
-│   │   │   ├── diagnostic.py
-│   │   │   ├── reports.py
-│   │   │   └── delete.py
-│   │   ├── services/         # Business logic
-│   │   │   ├── llm.py        # AI integration
-│   │   │   ├── scoring.py    # Response scoring
-│   │   │   └── questions.py  # Question management
-│   │   └── data/             # Mock data
-│   ├── requirements.txt
+│   │   └── services/         # Business logic
+│   ├── tests/                # Test suite
 │   ├── Dockerfile
-│   └── tests/
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx           # Main app (session restore)
-│   │   ├── api.js            # API client
-│   │   ├── main.jsx
-│   │   ├── styles.css
-│   │   └── pages/            # Page components
-│   │       ├── Login.jsx
-│   │       ├── OrgPicker.jsx
-│   │       ├── Diagnostic.jsx
-│   │       ├── Dashboard.jsx
-│   │       └── Report.jsx
-│   ├── package.json
-│   ├── vite.config.js
-│   └── index.html
-├── README.md
-└── .gitignore
+│   │   ├── App.jsx           # Session restore logic
+│   │   ├── pages/            # Components
+│   │   └── api.js            # API client
+│   └── package.json
+├── README.md                 # This file
+└── .gitignore               # Comprehensive patterns
 ```
 
-## Recent Changes (PR Reviews)
+## Client Request Documentation
 
-### PR #1: Core Improvements & Bug Fixes
-- Privacy threshold enforcement (hide teams <5 responses)
-- Response rate calculations
-- Dashboard improvements
-
-### PR #2: Client Requirements
-- Enhanced dashboard scoring and visualization
-- Performance optimizations
-- Additional security hardening
-
-### PR #3: Enterprise Security
-- Audit logging system
-- CSRF token protection
-- Security headers middleware
-- User data deletion (GDPR)
-
-### PR #4: Frontend UX
-- Session restoration on page load
-- Loading states on all pages
-- Expanded .gitignore
-- GET /auth/me endpoint
-
-## Troubleshooting
-
-### Frontend can't reach backend
-**Error:** `Failed to load resource: 404`
-- Check `VITE_API_URL` environment variable is set correctly
-- Verify backend is running and accessible at that URL
-- Check browser console for exact error
-
-### Deployment fails
-- Check Render build logs for specific errors
-- Verify environment variables are set
-- Ensure all required files are committed to Git
-
-### Demo data not loading
-```bash
-cd backend
-python -m app.seed
-```
-
-## Contributing
-
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make changes and commit: `git commit -m "feat: description"`
-3. Push: `git push origin feature/your-feature`
-4. Create a Pull Request
-
-## Support
-
-For issues or questions, check the GitHub issues or review the deployment logs on Render/Vercel.
-
-## License
-
-This project is provided as-is for the Northwind Logistics assessment.
+See `CLIENT_REQUEST.md` for original requirements and how they were addressed.
