@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  AI_MODE: mock
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r backend/requirements.txt
+      - run: cd backend && DATABASE_URL=sqlite:///./ci.db python -m pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd frontend && npm ci || npm install
+      - run: cd frontend && npm run build
+
+  smoke:
+    runs-on: ubuntu-latest
+    needs: backend-test
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r backend/requirements.txt
+      - run: cd backend && DATABASE_URL=sqlite:///./ci.db python -m app.seed
+      - run: cd backend && DATABASE_URL=sqlite:///./ci.db uvicorn app.main:app &
+      - run: sleep 3 && curl -f http://localhost:8000/openapi.json || exit 1
+      - run: |
+          curl -X POST http://localhost:8000/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"asha@northwind.test","password":"pulse123"}' \
+            | grep -q "token" || exit 1
+      - run: |
+          curl -X POST http://localhost:8000/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"asha@northwind.test","password":"wrong"}' \
+            -w "%{http_code}\n" -o /dev/null | grep -E "^(400|401|403)$" || exit 1
+      - run: |
+          curl -X GET http://localhost:8000/dashboard?org_id=1 \
+            -w "%{http_code}\n" -o /dev/null | grep -E "^(401|403)$" || exit 1
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+
+  ci-passed:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [backend-test, frontend, smoke, secrets]
+    timeout-minutes: 1
+    steps:
+      - run: |
+          if [[ "${{ needs.backend-test.result }}" != "success" ]] || \
+             [[ "${{ needs.frontend.result }}" != "success" ]] || \
+             [[ "${{ needs.smoke.result }}" != "success" ]] || \
+             [[ "${{ needs.secrets.result }}" != "success" ]]; then
+            exit 1
+          fi
