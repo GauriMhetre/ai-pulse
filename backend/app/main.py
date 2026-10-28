@@ -2,13 +2,35 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+import os
 
-from .db import Base, engine
+from .db import Base, engine, SessionLocal
 from .routes import auth_routes, diagnostic, reports, dashboard, delete
 from .csrf import CSRFProtection
 from .config import SECURITY_HEADERS, ALLOWED_ORIGINS
+from . import models
 
 Base.metadata.create_all(bind=engine)
+
+# Auto-seed database on first startup (Render free tier workaround)
+def auto_seed_if_empty():
+    """Seed demo data if database is empty (no users exist)"""
+    try:
+        db = SessionLocal()
+        user_count = db.query(models.User).count()
+        db.close()
+        
+        if user_count == 0:
+            # Database is empty, seed it
+            from . import seed
+            seed.run()
+            print("✓ Database seeded with demo data on startup")
+    except Exception as e:
+        print(f"Auto-seed skipped or failed: {e}")
+
+# Run auto-seed on startup (only for development/free tier)
+if os.getenv("ENABLE_AUTO_SEED", "true").lower() == "true":
+    auto_seed_if_empty()
 
 app = FastAPI(title="AI Pulse API")
 
