@@ -6,7 +6,7 @@ from starlette.responses import Response
 from .db import Base, engine
 from .routes import auth_routes, diagnostic, reports, dashboard, delete
 from .csrf import CSRFProtection
-from .config import SECURITY_HEADERS
+from .config import SECURITY_HEADERS, ALLOWED_ORIGINS
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,7 +23,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*", "X-CSRF-Token"],
 )

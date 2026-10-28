@@ -17,6 +17,14 @@ LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "")
 TOKEN_HOURS = 12
 
+# CORS configuration
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Local development
+    "http://localhost:3000",  # Alternative dev port
+    FRONTEND_URL,  # Production frontend
+]
+
 # Security configuration
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -27,4 +35,3 @@ SECURITY_HEADERS = {
 }
 
 ENABLE_AUDIT_LOGGING = os.getenv("ENABLE_AUDIT_LOGGING", "true").lower() == "true"
-
