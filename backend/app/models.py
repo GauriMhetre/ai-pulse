@@ -44,6 +44,12 @@ class Membership(Base):
 
 
 class Response(Base):
+    """Employee diagnostic response with AI scoring.
+    
+    Includes audit trail support:
+    - created_at: UTC timestamp for audit logging
+    - cascading delete support for GDPR right-to-be-forgotten
+    """
     __tablename__ = "responses"
     id: Mapped[int] = mapped_column(primary_key=True)
     membership_id: Mapped[int] = mapped_column(ForeignKey("memberships.id"))
@@ -52,4 +58,5 @@ class Response(Base):
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     flags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # Audit trail: UTC timestamp for all responses
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
