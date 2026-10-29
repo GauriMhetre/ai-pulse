@@ -135,13 +135,7 @@ export default function Dashboard({ org }) {
           </div>
         )}
 
-        {/* Raw Data for Reference */}
-        <details style={{ marginTop: "1.5rem", color: "var(--muted)", fontSize: "0.85rem" }}>
-          <summary style={{ cursor: "pointer", userSelect: "none" }}>Raw Data</summary>
-          <pre style={{ marginTop: "0.5rem", overflow: "auto", maxHeight: "300px" }}>
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </details>
+
       </div>
     </div>
   );
