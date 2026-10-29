@@ -55,8 +55,8 @@ export default function App() {
   };
 
   return (
-    <div className="wrap">
-      <h1>AI Pulse</h1>
+    <div className={step === "dashboard" ? "" : "wrap"} style={step === "dashboard" ? { width: "100%", margin: 0, padding: 0 } : {}}>
+      {step !== "dashboard" && <h1>AI Pulse</h1>}
       {step === "login" && (
         <Login onDone={(s) => { setSession(s); setStep("org"); }} />
       )}

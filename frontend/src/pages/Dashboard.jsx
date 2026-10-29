@@ -35,8 +35,8 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
   const hiddenTeamCount = data.hidden_team_count || 0;
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", paddingBottom: "1rem", borderBottom: "1px solid #e8f1ed", paddingLeft: "1rem", paddingRight: "1rem" }}>
+    <div style={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column", padding: 0, margin: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0", paddingBottom: "1rem", borderBottom: "1px solid #e8f1ed", paddingLeft: "2rem", paddingRight: "2rem", paddingTop: "1rem" }}>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <span style={{ fontSize: "1.1rem", color: "#3d5247" }}>AI Pulse</span>
           <span style={{ color: "#999" }}>/</span>
@@ -62,9 +62,9 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
           </button>
         </div>
       </div>
-      <div style={{ display: "flex", gap: "0", flex: 1, paddingLeft: "1rem", paddingRight: "1rem" }}>
+      <div style={{ display: "flex", gap: "0", flex: 1, paddingLeft: "0", paddingRight: "0" }}>
       {/* Sidebar */}
-      <div style={{ width: "160px", flexShrink: 0, paddingRight: "1rem" }}>
+      <div style={{ width: "200px", flexShrink: 0, paddingLeft: "2rem", paddingRight: "1rem", paddingTop: "1rem" }}>
         <div style={{ backgroundColor: "#f5f9f7", padding: "1rem", borderRadius: "8px" }}>
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {[
@@ -97,7 +97,7 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, paddingRight: "2rem", paddingLeft: "1rem", paddingTop: "1rem", paddingBottom: "2rem", overflowY: "auto" }}>
         {activeTab === "overview" && (
           <div style={{ width: "100%" }}>
             <h2>{data.organization} - Overview</h2>
