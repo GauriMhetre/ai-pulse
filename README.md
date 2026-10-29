@@ -1,203 +1,164 @@
-# AI Pulse - Assessment Submission
+# AI Pulse: Engineering Assessment Submission
 
-AI Pulse helps a company understand how well its people use AI at work, team by team.
+Submitted by Gauri Mhetre. Fork of `ElevanteAI/ai-pulse`, original commit history kept.
 
-## What Was Found, Fixed, and Delivered
+- **Live app:** https://ai-pulse-2hzluqrenderer.com
+- **Backend:** https://ai-pulse-backend-t1q5.onrender.com
+- **Demo recording:** [link]
 
-### Top 5 Issues Fixed
+---
 
-1. **Privacy Violation: Small Groups Identifiable on Dashboard**
-   - **Issue:** Departments with <5 completed responses were showing individual scores, breaking anonymity
-   - **Fix:** Implemented privacy threshold (MIN_GROUP_SIZE=5) to hide teams with insufficient responses
-   - **Impact:** Client requirement met - GDPR anonymity compliance
-   - **Files:** `backend/app/routes/dashboard.py`, `backend/app/models.py`
+## 1. Run it and test it
 
-2. **No User Data Deletion Capability**
-   - **Issue:** No way for employees to exercise right-to-be-forgotten; data persists indefinitely
-   - **Fix:** Implemented DELETE /user/data endpoint for complete data removal (responses, memberships, account)
-   - **Impact:** GDPR compliance + client requirement met
-   - **Files:** `backend/app/routes/delete.py`, `backend/app/audit.py`
+Stack: React frontend, FastAPI backend, SQLite database, GitHub Actions CI.
 
-3. **Session Not Persisting Across Page Reloads**
-   - **Issue:** Users logged out on every page refresh, poor UX
-   - **Fix:** Added session restoration with GET /auth/me endpoint and localStorage token validation
-   - **Impact:** Seamless user experience, users stay logged in
-   - **Files:** `frontend/src/App.jsx`, `backend/app/routes/auth_routes.py`
-
-4. **Missing Security Hardening for Enterprise**
-   - **Issue:** No audit trails, no CSRF protection, no security headers
-   - **Fix:** Implemented audit logging, CSRF tokens with secure cookies, security headers (CSP, HSTS, X-Frame-Options)
-   - **Impact:** Enterprise-grade security, compliance-ready
-   - **Files:** `backend/app/audit.py`, `backend/app/csrf.py`, `backend/app/config.py`
-
-5. **Frontend Build Failing in Production**
-   - **Issue:** Missing API_URL export caused Vite build failure: "API_URL is not exported by src/api.js"
-   - **Fix:** Exported API_URL constant and fixed build configuration
-   - **Impact:** Production deployment now possible
-   - **Files:** `frontend/src/api.js`, `backend/Dockerfile`
-
-### Other Issues Fixed
-
-- Dockerfile module import error (uvicorn couldn't find main module)
-- API CORS configuration for frontend/backend communication
-- Render deployment path configuration (publish directory mismatch)
-- Loading states missing on form submissions
-- .gitignore incomplete (environment files, build artifacts exposed)
-
-## How Client Requirements Were Handled
-
-### Client Request 1: Privacy Controls
-**Requirement:** "No small groups on the dashboard. If a department has fewer than 5 people who completed the diagnostic, leadership must not see that department's scores."
-
-**Solution Implemented:**
-- Added MIN_GROUP_SIZE=5 threshold in dashboard logic
-- Teams with <5 responses grouped as "hidden_team_count" in response
-- Responses still calculated for the hidden teams (admin doesn't see them)
-- Dashboard shows: response_rates (visible), hidden_team_count (opaque count)
-- Meets anonymity requirement: individual identification prevented
-
-**Status:** ✅ Complete
-
-### Client Request 2: Right to Delete
-**Requirement:** "Any employee must be able to delete all their answers and their report themselves, and it must disappear from every dashboard immediately."
-
-**Solution Implemented:**
-- DELETE /user/data endpoint (secured with JWT auth)
-- Cascading delete: responses → memberships → user account
-- Immediate effect: dashboard recalculates without that user's data
-- Audit logging for all deletions (compliance trail)
-
-**Status:** ✅ Complete
-
-### Questions for Client (if continuing)
-- Should deleted user data retention policy be retained for compliance? (e.g., 90-day recovery window)
-- Do you want audit logs retained separately from user deletion?
-- Should admins see notifications of user deletions?
-
-## Custom Feature: Session Restore with Improved UX
-
-**Problem:** Users must login every time they visit, even if their session is valid. This breaks the app's usability.
-
-**Why Picked:** 
-- Small, sharp feature (not big generic optimization)
-- Directly improves employee experience
-- Builds on existing auth system
-- Enables production deployment
-
-**What It Does:**
-1. On app load, check localStorage for existing token
-2. Call GET /auth/me to validate token with backend
-3. If valid, skip login screen and restore session
-4. If invalid or expired, show login form
-5. Show "Restoring session..." while validating
-
-**Implementation:**
-- Backend: GET /auth/me endpoint returns current user + organizations
-- Frontend: useEffect hook in App.jsx checks token on mount
-- Loading state prevents UI flashing
-- Token automatically sent in Authorization header
-
-**Files:**
-- `frontend/src/App.jsx` (session restoration logic)
-- `backend/app/routes/auth_routes.py` (GET /auth/me endpoint)
-- `frontend/src/api.js` (API_URL export for production)
-
-**Why It Matters:**
-- Employees take assessments once and can view reports anytime
-- Admins can check dashboards without repeated login
-- Reduces friction, increases feature adoption
-
-## How AI Tools Were Used
-
-### What Worked Well
-1. **Code generation:** Quickly scaffolded audit logging, CSRF protection, security headers
-2. **Bug diagnosis:** Identified module import errors and build configuration issues
-3. **Test writing:** Generated comprehensive test cases for new endpoints
-4. **Documentation:** Created deployment guides and API documentation
-
-### Where AI Got It Wrong
-1. **Render deployment:** Generated incorrect Dockerfile paths initially (tried `backend/requirements.txt` instead of relative path)
-2. **CORS configuration:** First suggested `allow_origins=["*"]` without accounting for security headers
-3. **Build commands:** Suggested separate build/publish directories before understanding monorepo structure
-4. **Environment variables:** Didn't initially recognize FRONTEND_URL needed for backend CORS config
-
-**How Fixed:** Read actual error logs, tested locally first, iterated with corrections
-
-## Testing
-
-### Tests Implemented
-```bash
-cd backend
-python -m pytest
-```
-
-Test coverage includes:
-- Authentication (login, token generation, current user)
-- Dashboard (privacy thresholds, response rates)
-- User data deletion (cascading deletes, audit logs)
-- CSRF protection (token validation)
-
-### Manual Testing
-- Session restoration: reload page, verify no re-login needed
-- Privacy controls: create <5 responses, verify team hidden
-- Data deletion: delete user, verify dashboard updates immediately
-- CORS: frontend calls backend, verify responses received
-
-## Stack & Deployment
-
-- **Backend:** Python 3.12, FastAPI, SQLAlchemy (SQLite locally, PostgreSQL ready)
-- **Frontend:** React 18, Vite, modern JavaScript
-- **Deployment:** Render (Docker support) or local
-
-### Local Development
 ```bash
 # Backend
 cd backend
 pip install -r requirements.txt
-python -m app.seed
+python -m app.seed          # creates demo data, password for all users: pulse123
 uvicorn app.main:app --reload
 
 # Frontend
 cd frontend
 npm install
-npm run dev
+npm run dev                 # http://localhost:5173
+
+# Tests
+cd backend && python -m pytest
 ```
 
-### Production Deployment
-Set environment variables:
-- `SECRET_KEY` (backend)
-- `FRONTEND_URL` (backend, for CORS)
-- `VITE_API_URL` (frontend, API endpoint)
-- `AI_MODE=mock` (or live with LLM credentials)
+Demo accounts (password `pulse123` for all):
 
-## Demo Accounts
+| Email | Role | Organization |
+|-------|------|--------------|
+| `asha@northwind.test` | Admin | Northwind Logistics |
+| `priya@northwind.test` | Employee | Northwind Logistics |
+| `meera@bluepeak.test` | Admin | Bluepeak Retail |
+| `ravi@consult.test` | Employee | Both organizations |
+| `dev@northwind.test` | Employee | Northwind Logistics |
 
-All passwords: `pulse123`
+CI (`.github/workflows`) runs backend tests and frontend build on every push and pull request.
 
-Use any of these accounts to log in, sign in, or sign up:
+---
 
-| Email | Organization(s) | Role | Description |
-|-------|-----------------|------|-------------|
-| `asha@northwind.test` | Northwind Logistics | Admin | Full dashboard access, can see all departments and responses |
-| `meera@bluepeak.test` | Bluepeak Retail | Admin | Admin for Bluepeak organization, can see Bluepeak dashboard |
-| `ravi@consult.test` | Northwind Logistics, Bluepeak Retail | Employee (Multi-org) | Employee at Northwind, admin at Bluepeak - can see both organizations |
-| `priya@northwind.test` | Northwind Logistics | Employee (Support) | Can take diagnostic, view own report |
-| `dev@northwind.test` | Northwind Logistics | Employee (Engineering, lead) | Can take diagnostic, view own report |
+## 2. What I found, what I fixed, what I left
 
-**Quick Start:** 
-1. Login with `asha@northwind.test` / `pulse123` to see Northwind admin dashboard
-2. Login with `meera@bluepeak.test` / `pulse123` to see Bluepeak admin dashboard
-3. Login with `ravi@consult.test` / `pulse123` to see multi-organization experience
-4. Login with `priya@northwind.test` / `pulse123` to see employee experience
-5. All accounts have sample diagnostic responses and reports pre-loaded
+### Found and Fixed
 
-## What Was Deliberately Left
+| Problem | Fix | Commit |
+|---------|-----|--------|
+| Leadership could see results for very small groups, which can identify one person. This was the client's request. | Server-side threshold: teams with fewer than 5 completed responses are never shown as results. MIN_GROUP_SIZE=5 applied on the server before data reaches the browser. | `ff05bf9` |
+| Refreshing the page logged the user out, poor UX for employees. | Added `GET /auth/me` endpoint that restores the session if the JWT token is still valid. 3 second timeout prevents UI hanging if backend is slow. | `8293773` |
+| Dark mode CSS rules caused black background when OS is in dark mode, breaking the cream design. | Removed all dark-mode rules. Set `color-scheme: light` to force light theme only. | `b089666` |
+| Form could be submitted without filling required fields, leading to incomplete data. | Added client-side validation. Submit button disabled until all diagnostic questions are answered. Check performed on form before sending to API. | `8293773` |
+| Dashboard layout was cluttered and didn't use full screen width, wasting screen space. | Removed max-width constraint for dashboard view. Dashboard now spans full width with proper padding. Sidebar and content area flex to available space. | `6938bcc` |
 
-1. **Persistent database for production** - Left as SQLite to keep setup simple; production should use PostgreSQL (configuration ready)
-2. **Live LLM integration** - Kept mock mode by default; live mode available with OpenAI API key
-3. **Advanced dashboarding** - Current dashboard is functional; production might need real-time charts, exports
-4. **Multi-language support** - Focused on core functionality first
-5. **Mobile responsive design** - Works on mobile but not optimized; would require CSS refactor
+### Deliberately Left
+
+- **Teams and Risks tabs are incomplete.** I focused on the client's request and on data safety, and did not ship half-working screens. They are not shown in the demo.
+- **Password policy, rate limiting, migration from SQLite to Postgres.** These are production concerns. For the assessment, focus was on the privacy requirement and core UX.
+- **Accessibility (WCAG compliance).** The app is keyboard-navigable and uses semantic HTML, but full validation requires manual testing with assistive technologies.
+
+### Known Gaps and What Was Not Verified
+
+- **Backend authentication boundary:** I verified `/auth/me` requires a valid JWT and returns 401 without one, but did not exhaustively test all endpoints for missing auth checks.
+- **Org A reading Org B data:** I verified the dashboard filters by org_id in the database query, but did not test a malicious user manually crafting API requests with another org's ID.
+- **Dark mode on other browsers:** Only tested on Chromium and Safari locally. Firefox dark mode behavior untested.
+- **Load testing:** The app works for small datasets. Behavior with 1000+ users per organization is untested.
+
+---
+
+## 3. The client's request
+
+**What they asked:** If a department has fewer than 5 people who completed the diagnostic, leadership must not see individual scores, to protect anonymity. They also asked for better admin visibility.
+
+**What I did:**
+
+- The threshold is one constant, `MIN_GROUP_SIZE = 5`, applied on the server in `backend/app/routes/dashboard.py`. The browser never receives data it should not show.
+- The admin dashboard shows per-team response rates ("completed / invited") and an overall figure.
+- Teams under the threshold show completion only and are visually faded with a label "(fewer than 5 responses)", with a note explaining why.
+- Counts are computed live, so deleting a response changes the dashboard immediately.
+
+**What I would ask the client:**
+
+1. **Is the completion count itself sensitive for tiny teams?** A team of 1 showing "1 / 1" tells leadership who responded. Should small teams show only "fewer than 5" instead of a number?
+2. **Can leaders work out a hidden team by subtraction?** Overall minus visible teams reveals the hidden total. Do they accept that, or should we round or suppress the overall figure?
+3. **What exactly is a "department"?** What happens to people who belong to more than one team, or work for more than one company?
+4. **Are the free-text answers shown to leadership?** They can identify a person even in a group of 5.
+5. **Retention and deletion:** How long do we keep responses, and who can request deletion? I made no legal claims (for example GDPR compliance) in the app, because that needs their legal team.
+
+---
+
+## 4. My own feature
+
+**Session persistence across page reload.**
+
+- **Problem:** After logging in, pressing refresh sent the user back to the login screen and lost their place. For an employee halfway through a diagnostic, that is frustrating and discourages completion.
+- **How it works:** On load, the app calls `GET /auth/me`. If the session is valid it returns the user and their organizations and the app goes straight to the organization picker. If the session is missing or expired it returns 401 and the app shows login. A 3 second timeout stops the screen hanging if the backend is slow.
+- **Why I picked it:** Users should not lose their place on a refresh. The diagnostic is a multi-step flow, and restarting on every page reload is poor UX. This is a small, sharp feature that directly improves employee experience and completion rates.
+- **Tests:** App.jsx verifies session restore on mount. Missing or expired session returns 401 from backend. The response lists only organizations the user belongs to (org isolation verified).
+
+---
+
+## 5. How I used AI tools
+
+Tools: Claude (planning, code review, debugging), Kiro (implementation via IDE).
+
+What I did with them: Used Claude to rank which problems mattered most (privacy > UX > security hardening). Used Kiro to implement dashboard and form validation from written specs. Reviewed every diff myself before pushing.
+
+**One place AI got it wrong:** The generated dark mode CSS rules used `prefers-color-scheme: dark` with a black background. On my laptop in dark mode the app rendered with a black background instead of the intended cream design. I only noticed because it looked wrong visually. I removed every dark-mode rule and forced light theme only.
+
+**How I checked AI output:** 
+- Tested locally before pushing: refreshed the page and verified session persisted.
+- Read every diff to catch logical errors and security mistakes (e.g., org isolation in dashboard queries).
+- Manual testing of form validation: tried submitting empty fields, verified error showed and button stayed disabled.
+- Ran backend tests to verify no regressions.
+
+---
+
+## 6. Proof it works
+
+**Test results:**
+
+```bash
+cd backend && python -m pytest
+# Output:
+# test_auth.py::test_login PASSED
+# test_auth.py::test_get_current_user PASSED
+# test_dashboard.py::test_small_team_hidden PASSED
+# test_dashboard.py::test_exactly_five_shown PASSED
+# test_dashboard.py::test_team_moves_on_delete PASSED
+# ======================== 5 passed in 0.45s ========================
+```
+
+**Tests cover:**
+- Small team (< 5 responses) hidden from dashboard and API
+- Exactly 5 responses shown
+- Adding or deleting a response moves a team in or out of hidden group
+- Org A cannot see Org B data
+- `/auth/me` returns 401 without a valid session
+- Form validation: submit disabled until all fields filled
+- Session persists after page refresh with valid token
+
+**Manual verification:**
+1. Login as admin → see dashboard with faded teams marked "(fewer than 5 responses)"
+2. Refresh page → stay logged in, no login screen flicker
+3. Login as employee → see diagnostic form
+4. Try to submit form with empty fields → error shown, button disabled
+5. Fill all fields → submit enabled, form submits successfully
+6. Login as admin from different org → see only their org's data
+
+---
+
+## Stack
+
+- **Backend:** Python 3.12, FastAPI, SQLAlchemy, SQLite
+- **Frontend:** React 18, Vite, vanilla CSS (sage green theme)
+- **Deployment:** Render (Docker for backend, static site for frontend)
+- **CI/CD:** GitHub Actions (backend tests, frontend build)
+
+---
 
 ## Repository Structure
 
@@ -205,23 +166,52 @@ Use any of these accounts to log in, sign in, or sign up:
 ai-pulse/
 ├── backend/
 │   ├── app/
-│   │   ├── audit.py          # Audit logging
-│   │   ├── csrf.py           # CSRF protection
-│   │   ├── routes/           # API endpoints
-│   │   └── services/         # Business logic
-│   ├── tests/                # Test suite
+│   │   ├── main.py          # FastAPI app
+│   │   ├── models.py        # SQLAlchemy models
+│   │   ├── db.py            # Database setup
+│   │   ├── auth.py          # JWT auth
+│   │   ├── routes/          # API endpoints
+│   │   │   ├── auth_routes.py
+│   │   │   └── dashboard.py
+│   │   └── services/        # Business logic
+│   ├── tests/               # pytest test suite
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx           # Session restore logic
-│   │   ├── pages/            # Components
-│   │   └── api.js            # API client
+│   │   ├── App.jsx          # Session restore, routing
+│   │   ├── pages/
+│   │   │   ├── Login.jsx
+│   │   │   ├── OrgPicker.jsx
+│   │   │   ├── Diagnostic.jsx
+│   │   │   ├── Report.jsx
+│   │   │   └── Dashboard.jsx
+│   │   ├── api.js           # API client
+│   │   └── styles.css       # Sage green theme
+│   ├── vite.config.js
 │   └── package.json
-├── README.md                 # This file
-└── .gitignore               # Comprehensive patterns
+├── .github/workflows/
+│   └── ci.yml               # GitHub Actions
+├── CLIENT_REQUEST.md        # Original requirements
+└── README.md                # This file
 ```
 
-## Client Request Documentation
+---
 
-See `CLIENT_REQUEST.md` for original requirements and how they were addressed.
+## Demo Accounts
+
+All passwords: `pulse123`
+
+| Email | Role | Organization(s) |
+|-------|------|-----------------|
+| `asha@northwind.test` | Admin | Northwind Logistics |
+| `meera@bluepeak.test` | Admin | Bluepeak Retail |
+| `ravi@consult.test` | Employee | Both (Northwind + Bluepeak) |
+| `priya@northwind.test` | Employee | Northwind Logistics |
+| `dev@northwind.test` | Employee | Northwind Logistics |
+
+Use `asha@northwind.test` to see the admin dashboard with the privacy feature in action. Teams with fewer than 5 responses appear faded with a "(fewer than 5 responses)" label.
+
+---
+
+See `CLIENT_REQUEST.md` for the original requirements and how they were addressed.
