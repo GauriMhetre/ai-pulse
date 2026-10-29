@@ -47,6 +47,13 @@ export default function App() {
     restoreSession();
   }, []);
 
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    setSession(null);
+    setOrg(null);
+    setStep("login");
+  };
+
   return (
     <div className="wrap">
       <h1>AI Pulse</h1>
@@ -57,11 +64,12 @@ export default function App() {
         <OrgPicker
           orgs={session.organizations}
           onPick={(o) => { setOrg(o); setStep(o.role === "admin" ? "dashboard" : "diagnostic"); }}
+          onSignOut={handleSignOut}
         />
       )}
       {step === "diagnostic" && <Diagnostic onDone={() => setStep("report")} />}
       {step === "report" && <Report />}
-      {step === "dashboard" && <Dashboard org={org} />}
+      {step === "dashboard" && <Dashboard org={org} onSwitchWorkspace={handleSignOut} />}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { api } from "../api.js";
 
-export default function Dashboard({ org }) {
+export default function Dashboard({ org, onSwitchWorkspace }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +36,34 @@ export default function Dashboard({ org }) {
   const hiddenTeamCount = data.hidden_team_count || 0;
 
   return (
-    <div style={{ display: "flex", gap: "2rem" }}>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", paddingBottom: "1rem", borderBottom: "1px solid #e8f1ed" }}>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <span style={{ fontSize: "1.1rem", color: "#3d5247" }}>AI Pulse</span>
+          <span style={{ color: "#999" }}>/</span>
+          <span style={{ fontSize: "1.1rem", fontWeight: "600", color: "#3d5247" }}>{data.organization}</span>
+        </div>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center", fontSize: "0.9rem" }}>
+          <span style={{ color: "#999" }}>admin@example.test</span>
+          <span style={{ color: "#999" }}>•</span>
+          <button
+            onClick={onSwitchWorkspace}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#6b8e7e",
+              cursor: "pointer",
+              textDecoration: "underline",
+              padding: 0,
+              font: "inherit",
+              fontSize: "0.9rem"
+            }}
+          >
+            Switch workspace
+          </button>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: "2rem" }}>
       {/* Sidebar */}
       <div style={{ width: "140px", flexShrink: 0 }}>
         <div style={{ backgroundColor: "#f5f9f7", padding: "1rem", borderRadius: "8px" }}>
