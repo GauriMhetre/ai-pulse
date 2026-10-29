@@ -1,6 +1,61 @@
-body { font-family: system-ui, sans-serif; margin: 0; background: #f6f7fb; color: #1d2433; }
-.wrap { max-width: 760px; margin: 40px auto; padding: 0 16px; }
-.card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 16px; }
-button { background: #3f2a71; color: #fff; border: 0; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
-input, textarea, select { width: 100%; padding: 8px; margin: 6px 0 14px; box-sizing: border-box; }
-.error { color: #b42318; }
+/* Sage green and cream theme */
+body { 
+  font-family: system-ui, sans-serif; 
+  margin: 0; 
+  background: #f5f9f7; 
+  color: #2d3d35; 
+}
+
+.wrap { 
+  max-width: 760px; 
+  margin: 40px auto; 
+  padding: 0 16px; 
+}
+
+.card { 
+  background: #fefdfb; 
+  border-radius: 10px; 
+  padding: 24px; 
+  box-shadow: 0 1px 3px rgba(45,61,53,.08); 
+  margin-bottom: 16px; 
+  border: 1px solid #e8f1ed; 
+}
+
+button { 
+  background: #6b8e7e; 
+  color: #fefdfb; 
+  border: 0; 
+  padding: 10px 16px; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-weight: 500; 
+  transition: background 0.2s; 
+}
+
+button:hover { 
+  background: #5a7a6d; 
+}
+
+input, textarea, select { 
+  width: 100%; 
+  padding: 8px; 
+  margin: 6px 0 14px; 
+  box-sizing: border-box; 
+  border: 1px solid #d4e4dd; 
+  border-radius: 4px; 
+  font-family: inherit; 
+}
+
+input:focus, textarea:focus, select:focus { 
+  outline: none; 
+  border-color: #6b8e7e; 
+  box-shadow: 0 0 0 2px rgba(107,142,126,.1); 
+}
+
+.error { 
+  color: #c85a54; 
+}
+
+h1, h2, h3 { 
+  color: #3d5247; 
+}
