@@ -18,19 +18,31 @@ export default function App() {
       try {
         const token = localStorage.getItem("token");
         if (token) {
-          const response = await fetch(`${API_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const user = await response.json();
-            setSession({
-              token,
-              ...user
+          // Add 5 second timeout to prevent infinite hanging
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+          
+          try {
+            const response = await fetch(`${API_URL}/auth/me`, {
+              headers: { Authorization: `Bearer ${token}` },
+              signal: controller.signal
             });
-            setStep("org");
-          } else {
-            localStorage.removeItem("token");
-            setIsRestoring(false);
+            clearTimeout(timeout);
+            
+            if (response.ok) {
+              const user = await response.json();
+              setSession({
+                token,
+                ...user
+              });
+              setStep("org");
+            } else {
+              localStorage.removeItem("token");
+              setIsRestoring(false);
+            }
+          } catch (fetchError) {
+            clearTimeout(timeout);
+            throw fetchError;
           }
         } else {
           setIsRestoring(false);
