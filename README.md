@@ -174,9 +174,20 @@ Set environment variables:
 
 All passwords: `pulse123`
 
-- `asha@northwind.test` - Admin
-- `priya@northwind.test` - Employee (Support)
-- `dev@northwind.test` - Employee (Engineering)
+Use any of these accounts to log in, sign in, or sign up:
+
+| Email | Role | Department | Description |
+|-------|------|-----------|-------------|
+| `asha@northwind.test` | Admin | Leadership | Full dashboard access, can see all departments and responses |
+| `priya@northwind.test` | Employee | Support | Can take diagnostic, view own report |
+| `dev@northwind.test` | Employee | Engineering | Can take diagnostic, view own report |
+| `rajesh@northwind.test` | Employee | Engineering | Can take diagnostic, view own report |
+| `maya@northwind.test` | Employee | Product | Can take diagnostic, view own report |
+
+**Quick Start:** 
+1. Login with `asha@northwind.test` / `pulse123` to see admin dashboard
+2. Logout and login with `priya@northwind.test` / `pulse123` to see employee experience
+3. All accounts have sample diagnostic responses and reports pre-loaded
 
 ## What Was Deliberately Left
 
