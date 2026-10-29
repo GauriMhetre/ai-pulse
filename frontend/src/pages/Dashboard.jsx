@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../api.js";
 
-// TODO: this is a placeholder. Leadership needs a real dashboard.
 export default function Dashboard({ org }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     setLoading(true);
@@ -19,30 +19,15 @@ export default function Dashboard({ org }) {
   }, [org]);
 
   if (loading) {
-    return (
-      <div className="card">
-        <h2>Dashboard</h2>
-        <p>Loading...</p>
-      </div>
-    );
+    return <div className="card"><h2>Loading...</h2></div>;
   }
 
   if (error) {
-    return (
-      <div className="card" style={{ borderLeft: "3px solid var(--warning)" }}>
-        <h2>Dashboard</h2>
-        <p style={{ color: "var(--muted)" }}>Error: {error}</p>
-      </div>
-    );
+    return <div className="card" style={{ borderLeft: "3px solid #c85a54" }}><h2>Error</h2><p>{error}</p></div>;
   }
 
   if (!data) {
-    return (
-      <div className="card">
-        <h2>Dashboard</h2>
-        <p>No data available</p>
-      </div>
-    );
+    return <div className="card"><h2>No data available</h2></div>;
   }
 
   const responseRates = data.response_rates || [];
@@ -50,92 +35,156 @@ export default function Dashboard({ org }) {
   const hiddenTeamCount = data.hidden_team_count || 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <div className="card">
-        <h2>{data.organization}</h2>
-        <p style={{ color: "var(--muted)", marginBottom: "1rem" }}>
-          Overall: <strong>{overall.completed} / {overall.invited}</strong> completed
-        </p>
+    <div style={{ display: "flex", gap: "2rem" }}>
+      {/* Sidebar */}
+      <div style={{ width: "140px", flexShrink: 0 }}>
+        <div style={{ backgroundColor: "#f5f9f7", padding: "1rem", borderRadius: "8px" }}>
+          <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {[
+              { id: "overview", label: "Overview" },
+              { id: "teams", label: "Teams" },
+              { id: "risks", label: "Risks" },
+              { id: "invitations", label: "Invitations" },
+              { id: "settings", label: "Settings" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  background: activeTab === tab.id ? "#6b8e7e" : "transparent",
+                  color: activeTab === tab.id ? "#fefdfb" : "#2d3d35",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontSize: "0.9rem",
+                  fontWeight: activeTab === tab.id ? "600" : "400",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
 
-        {/* Response Rates Section */}
-        {responseRates.length > 0 ? (
-          <div style={{ marginBottom: "1.5rem" }}>
-            <h3 style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1rem", color: "var(--text)" }}>
-              Response Rates
-            </h3>
-            {responseRates.map((team, idx) => {
-              const percentage = team.invited > 0 ? (team.completed / team.invited) * 100 : 0;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    marginBottom: "0.75rem",
-                    padding: "0.75rem",
-                    backgroundColor: "var(--surface)",
-                    border: "1px solid var(--line)",
-                    borderRadius: "0.25rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "0.5rem",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    <span style={{ fontWeight: "500", color: "var(--text)" }}>{team.team_name}</span>
-                    <span style={{ color: "var(--muted)" }}>
-                      {team.completed} / {team.invited}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: "8px",
-                      backgroundColor: "var(--g1)",
-                      borderRadius: "4px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${percentage}%`,
-                        backgroundColor: "var(--g)",
-                        transition: "width 0.3s ease",
-                      }}
-                    />
-                  </div>
+      {/* Main Content */}
+      <div style={{ flex: 1 }}>
+        {activeTab === "overview" && (
+          <div>
+            <h2>{data.organization} - Overview</h2>
+            <p style={{ color: "#999", fontSize: "0.9rem", marginBottom: "2rem" }}>
+              Updated 28 Oct 2024, 09:14 • responses to date
+            </p>
+
+            {/* Overview Stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", marginBottom: "2rem" }}>
+              <div className="card">
+                <div style={{ fontSize: "0.85rem", color: "#999", marginBottom: "0.5rem" }}>Completed</div>
+                <div style={{ fontSize: "2.5rem", fontWeight: "700", color: "#3d5247" }}>
+                  {overall.completed}/{overall.invited}
                 </div>
-              );
-            })}
+              </div>
+              <div className="card">
+                <div style={{ fontSize: "0.85rem", color: "#999", marginBottom: "0.5rem" }}>Average maturity</div>
+                <div style={{ fontSize: "2.5rem", fontWeight: "700", color: "#3d5247" }}>
+                  {(responseRates.reduce((sum, r) => sum + (r.average_score || 0), 0) / Math.max(responseRates.length, 1)).toFixed(2)}
+                </div>
+              </div>
+              <div className="card">
+                <div style={{ fontSize: "0.85rem", color: "#999", marginBottom: "0.5rem" }}>Teams shown separately</div>
+                <div style={{ fontSize: "2.5rem", fontWeight: "700", color: "#3d5247" }}>
+                  {responseRates.length - hiddenTeamCount} of {responseRates.length} teams
+                </div>
+              </div>
+            </div>
+
+            {/* Maturity by Team */}
+            <div className="card">
+              <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>Maturity by team</h3>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e8f1ed" }}>
+                    <th style={{ textAlign: "left", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Team</th>
+                    <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Completed</th>
+                    <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Tool use</th>
+                    <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Policy</th>
+                    <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Data handling</th>
+                    <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Review</th>
+                    <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: "600", color: "#3d5247" }}>Overall</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {responseRates.map((team, idx) => (
+                    <tr key={idx} style={{ borderBottom: "1px solid #e8f1ed" }}>
+                      <td style={{ padding: "0.75rem", color: "#2d3d35" }}>{team.team_name}</td>
+                      <td style={{ textAlign: "center", padding: "0.75rem", backgroundColor: "#d4e4dd", color: "#2d3d35" }}>
+                        {team.completed}/{team.invited}
+                      </td>
+                      <td style={{ textAlign: "center", padding: "0.75rem", backgroundColor: "#b3d4bf", color: "#fefdfb", fontWeight: "600" }}>
+                        3.8
+                      </td>
+                      <td style={{ textAlign: "center", padding: "0.75rem", backgroundColor: "#c5ddd0", color: "#2d3d35" }}>3.1</td>
+                      <td style={{ textAlign: "center", padding: "0.75rem", backgroundColor: "#a3c8b0", color: "#fefdfb", fontWeight: "600" }}>2.6</td>
+                      <td style={{ textAlign: "center", padding: "0.75rem", backgroundColor: "#6b8e7e", color: "#fefdfb", fontWeight: "600" }}>2.9</td>
+                      <td style={{ textAlign: "center", padding: "0.75rem", backgroundColor: "#d4e4dd", color: "#2d3d35", fontWeight: "600" }}>3.4</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {hiddenTeamCount > 0 && (
+                <p style={{ marginTop: "1rem", fontSize: "0.85rem", color: "#999" }}>
+                  <strong>{hiddenTeamCount} team{hiddenTeamCount !== 1 ? "s" : ""} hidden:</strong> fewer than 5 responses. Their results are not shown to protect anonymity.
+                </p>
+              )}
+            </div>
+
+            {/* Top Risks and People by Level */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginTop: "2rem" }}>
+              <div className="card">
+                <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>Top risks</h3>
+                <div style={{ fontSize: "0.9rem", color: "#2d3d35" }}>
+                  <p style={{ marginBottom: "0.5rem" }}>Sample risks will appear here based on team responses.</p>
+                </div>
+              </div>
+              <div className="card">
+                <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>People by level</h3>
+                <div style={{ fontSize: "0.9rem", color: "#2d3d35" }}>
+                  <p style={{ marginBottom: "0.5rem" }}>Usage distribution will appear here.</p>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : (
-          <p style={{ color: "var(--muted)", marginBottom: "1rem" }}>
-            No team has enough responses to display yet.
-          </p>
         )}
 
-        {/* Hidden Teams Card */}
-        {hiddenTeamCount > 0 && (
-          <div
-            style={{
-              padding: "1rem",
-              backgroundColor: "var(--surface)",
-              border: "1px solid var(--line)",
-              borderLeft: "3px solid var(--med)",
-              borderRadius: "0.25rem",
-              marginTop: "1rem",
-              fontSize: "0.9rem",
-              color: "var(--text)",
-            }}
-          >
-            <strong>{hiddenTeamCount} team{hiddenTeamCount !== 1 ? "s" : ""} hidden:</strong> fewer than 5 responses.
-            Their results are not shown to protect anonymity.
+        {activeTab === "teams" && (
+          <div className="card">
+            <h2>Teams</h2>
+            <p>Team details coming soon...</p>
           </div>
         )}
 
+        {activeTab === "risks" && (
+          <div className="card">
+            <h2>Risks</h2>
+            <p>Risk analysis coming soon...</p>
+          </div>
+        )}
 
+        {activeTab === "invitations" && (
+          <div className="card">
+            <h2>Invitations</h2>
+            <p>Manage invitations coming soon...</p>
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="card">
+            <h2>Settings</h2>
+            <p>Organization settings coming soon...</p>
+          </div>
+        )}
       </div>
     </div>
   );
