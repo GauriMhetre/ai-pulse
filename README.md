@@ -176,18 +176,20 @@ All passwords: `pulse123`
 
 Use any of these accounts to log in, sign in, or sign up:
 
-| Email | Role | Department | Description |
-|-------|------|-----------|-------------|
-| `asha@northwind.test` | Admin | Leadership | Full dashboard access, can see all departments and responses |
-| `priya@northwind.test` | Employee | Support | Can take diagnostic, view own report |
-| `dev@northwind.test` | Employee | Engineering | Can take diagnostic, view own report |
-| `rajesh@northwind.test` | Employee | Engineering | Can take diagnostic, view own report |
-| `maya@northwind.test` | Employee | Product | Can take diagnostic, view own report |
+| Email | Organization(s) | Role | Description |
+|-------|-----------------|------|-------------|
+| `asha@northwind.test` | Northwind Logistics | Admin | Full dashboard access, can see all departments and responses |
+| `meera@bluepeak.test` | Bluepeak Retail | Admin | Admin for Bluepeak organization, can see Bluepeak dashboard |
+| `ravi@consult.test` | Northwind Logistics, Bluepeak Retail | Employee (Multi-org) | Employee at Northwind, admin at Bluepeak - can see both organizations |
+| `priya@northwind.test` | Northwind Logistics | Employee (Support) | Can take diagnostic, view own report |
+| `dev@northwind.test` | Northwind Logistics | Employee (Engineering, lead) | Can take diagnostic, view own report |
 
 **Quick Start:** 
-1. Login with `asha@northwind.test` / `pulse123` to see admin dashboard
-2. Logout and login with `priya@northwind.test` / `pulse123` to see employee experience
-3. All accounts have sample diagnostic responses and reports pre-loaded
+1. Login with `asha@northwind.test` / `pulse123` to see Northwind admin dashboard
+2. Login with `meera@bluepeak.test` / `pulse123` to see Bluepeak admin dashboard
+3. Login with `ravi@consult.test` / `pulse123` to see multi-organization experience
+4. Login with `priya@northwind.test` / `pulse123` to see employee experience
+5. All accounts have sample diagnostic responses and reports pre-loaded
 
 ## What Was Deliberately Left
 
