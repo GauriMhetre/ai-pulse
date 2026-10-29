@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import React, { useEffect, useState } from "react";
 import { api } from "../api.js";
 
 export default function Dashboard({ org, onSwitchWorkspace }) {
@@ -214,6 +213,7 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
