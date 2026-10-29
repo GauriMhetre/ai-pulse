@@ -74,19 +74,21 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
         {responseRates.length > 0 ? (
           <div style={{ marginBottom: "2rem" }}>
             <h3 style={{ marginTop: 0, marginBottom: "1.5rem", fontSize: "1rem", color: "#3d5247" }}>
-              Response Rates
+              Response Rates by Team
             </h3>
             {responseRates.map((team, idx) => {
               const percentage = team.invited > 0 ? (team.completed / team.invited) * 100 : 0;
+              const isHidden = team.completed < 5;
               return (
                 <div
                   key={idx}
                   style={{
                     marginBottom: "1.5rem",
                     padding: "1rem",
-                    backgroundColor: "#fefdfb",
-                    border: "1px solid #e8f1ed",
+                    backgroundColor: isHidden ? "#f9f6f1" : "#fefdfb",
+                    border: isHidden ? "1px solid #e8ddd0" : "1px solid #e8f1ed",
                     borderRadius: "8px",
+                    opacity: isHidden ? 0.8 : 1,
                   }}
                 >
                   <div
@@ -97,7 +99,10 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
                       fontSize: "0.95rem",
                     }}
                   >
-                    <span style={{ fontWeight: "600", color: "#3d5247" }}>{team.team_name}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={{ fontWeight: "600", color: "#3d5247" }}>{team.team_name}</span>
+                      {isHidden && <span style={{ fontSize: "0.8rem", color: "#999", fontStyle: "italic" }}>(fewer than 5 responses)</span>}
+                    </div>
                     <span style={{ color: "#999" }}>
                       {team.completed} / {team.invited}
                     </span>
@@ -142,7 +147,7 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
             }}
           >
             <p style={{ margin: 0, fontSize: "0.9rem", color: "#3d5247" }}>
-              <strong>{hiddenTeamCount} team{hiddenTeamCount !== 1 ? "s" : ""} hidden:</strong> fewer than 5 responses. Their results are not shown to protect anonymity.
+              <strong>Note:</strong> Teams with fewer than 5 responses are shown above with reduced opacity for reference, but their individual scores are not displayed separately to protect anonymity.
             </p>
           </div>
         )}
