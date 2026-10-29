@@ -35,8 +35,8 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
   const hiddenTeamCount = data.hidden_team_count || 0;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", paddingBottom: "1rem", borderBottom: "1px solid #e8f1ed" }}>
+    <div style={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", paddingBottom: "1rem", borderBottom: "1px solid #e8f1ed", paddingLeft: "1rem", paddingRight: "1rem" }}>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <span style={{ fontSize: "1.1rem", color: "#3d5247" }}>AI Pulse</span>
           <span style={{ color: "#999" }}>/</span>
@@ -62,9 +62,9 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
           </button>
         </div>
       </div>
-      <div style={{ display: "flex", gap: "2rem" }}>
+      <div style={{ display: "flex", gap: "0", flex: 1, paddingLeft: "1rem", paddingRight: "1rem" }}>
       {/* Sidebar */}
-      <div style={{ width: "140px", flexShrink: 0 }}>
+      <div style={{ width: "160px", flexShrink: 0, paddingRight: "1rem" }}>
         <div style={{ backgroundColor: "#f5f9f7", padding: "1rem", borderRadius: "8px" }}>
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {[
@@ -97,16 +97,16 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         {activeTab === "overview" && (
-          <div>
+          <div style={{ width: "100%" }}>
             <h2>{data.organization} - Overview</h2>
             <p style={{ color: "#999", fontSize: "0.9rem", marginBottom: "2rem" }}>
               Updated 28 Oct 2024, 09:14 • responses to date
             </p>
 
             {/* Overview Stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", marginBottom: "2rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2rem", marginBottom: "2rem", width: "100%" }}>
               <div className="card">
                 <div style={{ fontSize: "0.85rem", color: "#999", marginBottom: "0.5rem" }}>Completed</div>
                 <div style={{ fontSize: "2.5rem", fontWeight: "700", color: "#3d5247" }}>
@@ -128,7 +128,7 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
             </div>
 
             {/* Maturity by Team */}
-            <div className="card">
+            <div className="card" style={{ width: "100%" }}>
               <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>Maturity by team</h3>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
                 <thead>
@@ -168,7 +168,7 @@ export default function Dashboard({ org, onSwitchWorkspace }) {
             </div>
 
             {/* Top Risks and People by Level */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginTop: "2rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginTop: "2rem", width: "100%" }}>
               <div className="card">
                 <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>Top risks</h3>
                 <div style={{ fontSize: "0.9rem", color: "#2d3d35" }}>
