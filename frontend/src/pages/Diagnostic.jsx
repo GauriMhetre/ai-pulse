@@ -15,6 +15,13 @@ export default function Diagnostic({ onDone }) {
   }, []);
 
   async function submit() {
+    // Validate all questions are answered
+    const unanswered = questions.filter(q => !answers[q.id] || answers[q.id].trim() === "");
+    if (unanswered.length > 0) {
+      alert(`Please answer all questions. Missing answers for ${unanswered.length} question(s).`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = Object.entries(answers).map(([question_id, answer]) => ({ question_id, answer }));
@@ -34,6 +41,9 @@ export default function Diagnostic({ onDone }) {
     );
   }
 
+  // Check if all questions are answered
+  const allAnswered = questions.length > 0 && questions.every(q => answers[q.id] && answers[q.id].trim() !== "");
+
   return (
     <div className="card">
       <h2>Your AI diagnostic</h2>
@@ -50,7 +60,7 @@ export default function Diagnostic({ onDone }) {
           )}
         </div>
       ))}
-      <button onClick={submit} disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</button>
+      <button onClick={submit} disabled={isSubmitting || !allAnswered} style={{ opacity: allAnswered ? 1 : 0.5, cursor: allAnswered ? "pointer" : "not-allowed" }}>{isSubmitting ? "Submitting..." : "Submit"}</button>
     </div>
   );
 }

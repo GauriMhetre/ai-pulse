@@ -7,7 +7,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import { API_URL } from "./api.js";
 
 export default function App() {
-  const [step, setStep] = useState("login");
+  const [step, setStep] = useState(null); // Start as null instead of "login"
   const [session, setSession] = useState(null);
   const [org, setOrg] = useState(null);
 
@@ -16,7 +16,10 @@ export default function App() {
     const restoreSession = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return;
+        if (!token) {
+          setStep("login");
+          return;
+        }
 
         // 3 second timeout - if backend is slow, just go to login
         const timeoutPromise = new Promise((_, reject) =>
@@ -40,7 +43,7 @@ export default function App() {
       } catch (error) {
         // If session restore fails for ANY reason, just clear it and show login
         localStorage.removeItem("token");
-        console.log("Session restore skipped, showing login");
+        setStep("login");
       }
     };
 
@@ -56,7 +59,12 @@ export default function App() {
 
   return (
     <div className={step === "dashboard" ? "" : "wrap"} style={step === "dashboard" ? { width: "100%", margin: 0, padding: 0 } : {}}>
-      {step !== "dashboard" && <h1>AI Pulse</h1>}
+      {step !== "dashboard" && step !== null && <h1>AI Pulse</h1>}
+      {step === null && (
+        <div className="card">
+          <h2>Loading...</h2>
+        </div>
+      )}
       {step === "login" && (
         <Login onDone={(s) => { setSession(s); setStep("org"); }} />
       )}
