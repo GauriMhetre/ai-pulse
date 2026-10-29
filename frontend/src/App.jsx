@@ -10,60 +10,42 @@ export default function App() {
   const [step, setStep] = useState("login");
   const [session, setSession] = useState(null);
   const [org, setOrg] = useState(null);
-  const [isRestoring, setIsRestoring] = useState(true);
 
-  // Restore session on app load
+  // Restore session on app load (with 3 second timeout)
   useEffect(() => {
     const restoreSession = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (token) {
-          // Add 5 second timeout to prevent infinite hanging
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 5000);
-          
-          try {
-            const response = await fetch(`${API_URL}/auth/me`, {
-              headers: { Authorization: `Bearer ${token}` },
-              signal: controller.signal
-            });
-            clearTimeout(timeout);
-            
-            if (response.ok) {
-              const user = await response.json();
-              setSession({
-                token,
-                ...user
-              });
-              setStep("org");
-            } else {
-              localStorage.removeItem("token");
-              setIsRestoring(false);
-            }
-          } catch (fetchError) {
-            clearTimeout(timeout);
-            throw fetchError;
-          }
-        } else {
-          setIsRestoring(false);
-        }
+        if (!token) return;
+
+        // 3 second timeout - if backend is slow, just go to login
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), 3000)
+        );
+
+        const fetchPromise = fetch(`${API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(r => {
+          if (!r.ok) throw new Error("not_ok");
+          return r.json();
+        });
+
+        const user = await Promise.race([fetchPromise, timeoutPromise]);
+        
+        setSession({
+          token,
+          ...user
+        });
+        setStep("org");
       } catch (error) {
-        console.error("Session restore failed:", error);
-        setIsRestoring(false);
+        // If session restore fails for ANY reason, just clear it and show login
+        localStorage.removeItem("token");
+        console.log("Session restore skipped, showing login");
       }
     };
 
     restoreSession();
   }, []);
-
-  if (isRestoring) {
-    return (
-      <div className="wrap">
-        <h1>AI Pulse</h1>
-        <p>Restoring session...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="wrap">
